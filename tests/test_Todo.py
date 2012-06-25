@@ -85,3 +85,13 @@ class TestTodo():
         reminder = todo.Reminder('This should not clash')
         todo.add_reminder(reminder)
         assert todo.reminder_exists(reminder)
+
+    def test_delete_fake_reminder(self):
+        reminder = todo.Reminder('This is a new reminder')
+        with pytest.raises(todo.ReminderDoesNotExistException):
+            todo.delete_reminder(reminder)
+
+    def test_delete_real_reminder(self, reminder):
+        todo.add_reminder(reminder)
+        todo.delete_reminder(reminder)
+        assert todo.reminder_exists(reminder) == False

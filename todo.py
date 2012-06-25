@@ -50,7 +50,7 @@ class ReminderExistsException(Exception):
     pass
 
 
-class ReminderDoesNotExist(Exception):
+class ReminderDoesNotExistException(Exception):
     pass
 
 
@@ -130,3 +130,12 @@ def add_reminder(reminder):
         raise ReminderExistsException("Reminder already exists")
 
     _append_reminder(reminder)
+
+
+def delete_reminder(reminder):
+    """Removes a reminder if one exists"""
+    if not reminder_exists(reminder):
+        raise ReminderDoesNotExistException("The reminder that you're"
+               " attempting to remove does not exist.")
+
+    _remove_reminder(reminder)
