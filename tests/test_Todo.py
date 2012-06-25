@@ -3,6 +3,7 @@ import os
 import shutil
 import shelve
 import todo
+import pytest
 
 from contextlib import closing
 
@@ -10,13 +11,13 @@ from contextlib import closing
 class TestTodo():
     def setup_db(self):
         name = os.path.join(tempfile.mkdtemp(), 'todo.shelve')
-        todo.STREAM = name
+
+        initial_reminders = [todo.Reminder('reminder 1', 'activities'),
+                             todo.Reminder('reminder 2', 'activities'),
+                             todo.Reminder('reminder 3', 'activities')]
 
         with closing(shelve.open(name)) as db:
-            db['serial'] = 0
-            db['activities'] = [todo.reminder('reminder 1', 'activities'),
-                                todo.reminder('reminder 2', 'activities'),
-                                todo.reminder('reminder 3', 'activities')]
+            db['activities'] = initial_reminders
 
         return name
 
@@ -32,7 +33,7 @@ class TestTodo():
         return todo.Reminder('content', 'catagory', 'due_date', 'date')
 
     def pytest_funcarg__reminder(self, request):
-        return request.cached_setup(self.setup_db, scope='class')
+        return request.cached_setup(self.setup_reminder, scope='class')
 
     def test_serial(self, reminder):
         assert reminder.serial == 4
@@ -49,5 +50,6 @@ class TestTodo():
     def test_remove_reminder(self, db, reminder):
         todo._remove_reminder(reminder)
 
-        with closing(shelve.open(db)) as reminders:
-            assert reminders['catagory'] == None
+        with pytest.raises(KeyError):
+            with closing(shelve.open(db)) as reminders:
+                assert reminders['catagory'] == None
