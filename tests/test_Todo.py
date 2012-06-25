@@ -9,16 +9,20 @@ from contextlib import closing
 
 
 class TestTodo():
+    sample = None
+
+    def setup_sample(self):
+        TestTodo.sample = [todo.Reminder('reminder 1', 'activities'),
+                           todo.Reminder('reminder 2', 'activities'),
+                           todo.Reminder('reminder 3', 'activities')]
+
     def setup_db(self):
         name = os.path.join(tempfile.mkdtemp(), 'todo.shelve')
         setattr(todo, 'STREAM', name)
 
-        initial_reminders = [todo.Reminder('reminder 1', 'activities'),
-                             todo.Reminder('reminder 2', 'activities'),
-                             todo.Reminder('reminder 3', 'activities')]
-
+        self.setup_sample()
         with closing(shelve.open(name)) as db:
-            db['activities'] = initial_reminders
+            db['activities'] = TestTodo.sample
 
         return name
 
@@ -36,6 +40,10 @@ class TestTodo():
     def pytest_funcarg__reminder(self, request):
         return request.cached_setup(self.setup_reminder, scope='class')
 
+    def test_proper_setup(self, db):
+        with closing(shelve.open(db)) as reminders:
+            assert len(reminders['activities']) == 3
+
     def test_append_reminder(self, db, reminder):
         todo._append_reminder(reminder)
 
@@ -43,7 +51,7 @@ class TestTodo():
             assert reminders['catagory'] == [reminder]
 
     def test_retrieve_serial(self, db, reminder):
-        assert todo.retrieve_serial(reminder) == 4
+        assert todo.retrieve_by_serial(4) == reminder
 
     def test_remove_reminder(self, db, reminder):
         todo._remove_reminder(reminder)
@@ -51,6 +59,9 @@ class TestTodo():
         with pytest.raises(KeyError):
             with closing(shelve.open(db)) as reminders:
                 assert reminders['catagory'] == None
+
+    def test_iter_reminders(self, db):
+        assert list(todo._iter_reminders()) == TestTodo.sample
 
     def test_serial(self, reminder):
         assert reminder.serial == 4

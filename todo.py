@@ -1,6 +1,7 @@
 import shelve
 import datetime
 
+from itertools import chain
 from contextlib import closing
 
 STREAM = 'todo.shelve'
@@ -55,6 +56,13 @@ def _load_reminders(stream=None):
     return closing(shelve.open(stream))
 
 
+def _iter_reminders():
+    with _load_reminders() as reminders:
+        catagories = (reminders[x] for x in reminders.keys() if x != 'serial')
+        for reminder in chain(*catagories):
+            yield reminder
+
+
 def _append_reminder(reminder):
     """Necessary to prevent writeback being required on the shelve"""
     with _load_reminders() as reminders:
@@ -72,3 +80,9 @@ def _remove_reminder(reminder):
             del reminders[reminder.catagory]
         else:
             reminders[reminder.catagory] = temp
+
+
+def retrieve_by_serial(serial):
+    for reminder in _iter_reminders():
+        if reminder.serial == serial:
+            return reminder
