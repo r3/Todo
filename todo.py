@@ -49,7 +49,9 @@ class ReminderExistsException(Exception):
     pass
 
 
-def _load_reminders(stream=STREAM):
+def _load_reminders(stream=None):
+    if stream is None:
+        stream = STREAM
     return closing(shelve.open(stream))
 
 

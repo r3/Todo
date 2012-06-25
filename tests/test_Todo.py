@@ -11,6 +11,7 @@ from contextlib import closing
 class TestTodo():
     def setup_db(self):
         name = os.path.join(tempfile.mkdtemp(), 'todo.shelve')
+        setattr(todo, 'STREAM', name)
 
         initial_reminders = [todo.Reminder('reminder 1', 'activities'),
                              todo.Reminder('reminder 2', 'activities'),
@@ -35,9 +36,6 @@ class TestTodo():
     def pytest_funcarg__reminder(self, request):
         return request.cached_setup(self.setup_reminder, scope='class')
 
-    def test_serial(self, reminder):
-        assert reminder.serial == 4
-
     def test_append_reminder(self, db, reminder):
         todo._append_reminder(reminder)
 
@@ -53,3 +51,6 @@ class TestTodo():
         with pytest.raises(KeyError):
             with closing(shelve.open(db)) as reminders:
                 assert reminders['catagory'] == None
+
+    def test_serial(self, reminder):
+        assert reminder.serial == 4
