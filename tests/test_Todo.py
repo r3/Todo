@@ -49,7 +49,7 @@ class TestTodo():
             assert reminders['catagory'] == [reminder]
 
     def test_retrieve_serial(self, db, reminder):
-        assert todo.search(4, 'serial')[0] == reminder
+        assert todo.search_field(4, 'serial')[0] == reminder
 
     def test_remove_reminder(self, db, reminder):
         todo._remove_reminder(reminder)
@@ -65,7 +65,7 @@ class TestTodo():
         assert reminder.serial == 4
 
     def test_search(self):
-        assert todo.search('reminder 1', 'content')[0] == TestTodo.sample[0]
+        assert todo.search_field('reminder 1', 'content')[0] == TestTodo.sample[0]
 
     def test_search_in_content(self):
         assert todo.search_in_content('reminder') == TestTodo.sample
@@ -95,3 +95,6 @@ class TestTodo():
         todo.add_reminder(reminder)
         todo.delete_reminder(reminder)
         assert todo.reminder_exists(reminder) == False
+
+    def test_main_args(self):
+        pass

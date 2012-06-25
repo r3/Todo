@@ -109,7 +109,7 @@ def _remove_reminder(reminder):
 
 
 # Workhorse functions called by argument functions
-def search(target, field):
+def search_field(target, field):
     """Returns all matching reminders based on a given field and target data
        Returns a list of matches
     """
@@ -173,6 +173,21 @@ def add(args):
     add_reminder(reminder)
 
 
+def remove(args):
+    """Called by the 'remove' subparser"""
+    pass
+
+
+def search(args):
+    """Called by the 'search' subparser"""
+    pass
+
+
+def show(args):
+    """Called by the 'show' subparser"""
+    pass
+
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=("Trivial todo keeps track"
         " of your reminders!"))
@@ -194,15 +209,18 @@ if __name__ == '__main__':
     parser_remove.add_argument('--yes', action='store_const', const=True,
             help="Confirms the removal of reminder", dest='confirm',
             default=None)
+    parser_remove.set_defaults(func=remove)
 
     # Search reminders
     parser_search = subparsers.add_parser('search', help="Search reminders")
     parser_search.add_argument('content', help="Find reminders by content")
     parser_search.add_argument('--due', help="Find reminders by due date")
+    parser_search.set_defaults(func=search)
 
     # Show reminders
     parser_show = subparsers.add_parser('show', help="Show reminders")
     parser_show.add_argument('--number', help="Show a reminder by its number")
     parser_show.add_argument('--catagory', help="Show reminders in a catagory")
+    parser_show.set_defaults(func=show)
 
     args = parser.parse_args()
