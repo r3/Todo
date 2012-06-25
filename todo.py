@@ -19,6 +19,7 @@ from contextlib import closing
 STREAM = 'todo.shelve'
 
 
+# Each added reminder is an instance of the following class
 class Reminder():
     """A reminder unit with a date, optional due date, catagory, and content"""
     def __init__(self, content=None, catagory=None, date_due=None, date=None):
@@ -58,6 +59,7 @@ class Reminder():
         return serial
 
 
+# Exceptions used when adding or removing reminders or parsing a date
 class ReminderExistsException(Exception):
     pass
 
@@ -66,6 +68,11 @@ class ReminderDoesNotExistException(Exception):
     pass
 
 
+class InvalidDateException(Exception):
+    pass
+
+
+# Implementation details
 def _load_reminders(stream=None):
     """Shortcut for loading the shelve with a context manager"""
     # Necessary to reload stream for testing purposes
@@ -101,6 +108,7 @@ def _remove_reminder(reminder):
             reminders[reminder.catagory] = temp
 
 
+# Workhorse functions called by argument functions
 def search(target, field):
     """Returns all matching reminders based on a given field and target data
        Returns a list of matches
@@ -153,8 +161,16 @@ def delete_reminder(reminder):
     _remove_reminder(reminder)
 
 
-def main(args):
+def parse_date(date):
+    """Parses date strings such as 'tomorrow' or '03/08' to valid datetime"""
     pass
+
+
+# Argument functions called depending on subparser used
+def add(args):
+    """Called by the 'add' subparser"""
+    reminder = Reminder(**args)
+    add_reminder(reminder)
 
 
 if __name__ == '__main__':
@@ -167,7 +183,9 @@ if __name__ == '__main__':
     parser_add.add_argument('content', help="Text for your reminder",
             required=True)
     parser_add.add_argument('--catagory', help="Catagory of your reminder")
-    parser_add.add_argument('--due', help="Due date for your reminder")
+    parser_add.add_argument('--due', help="Due date for your reminder",
+            dest='date_due')
+    parser_add.set_defaults(func=add)
 
     # Remove reminders
     parser_remove = subparsers.add_parser('remove', help="Remove reminders")
@@ -188,4 +206,3 @@ if __name__ == '__main__':
     parser_show.add_argument('--catagory', help="Show reminders in a catagory")
 
     args = parser.parse_args()
-    main(args)
