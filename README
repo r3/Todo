@@ -1,0 +1,3 @@
+A basic reminder system for handling trivial todo notes. Created to supplant my
+current system of recording such things in a ~/.todo file using a text editor.
+This approach is more flexible and extendible.
