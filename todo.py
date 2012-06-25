@@ -1,5 +1,17 @@
+#!/usr/bin/env python
+"""Trivial Todo
+
+    https://github.com/r3/Todo
+
+
+    Trivial Todo is a command line driven program used to track reminders. It
+    is capable of handling due dates, catagories for your reminders, and more.
+    Use `todo --help` for a complete list of options.
+"""
+
 import shelve
 import datetime
+import argparse
 
 from itertools import chain
 from contextlib import closing
@@ -139,3 +151,41 @@ def delete_reminder(reminder):
                " attempting to remove does not exist.")
 
     _remove_reminder(reminder)
+
+
+def main(args):
+    pass
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description=("Trivial todo keeps track"
+        " of your reminders!"))
+    subparsers = parser.add_subparsers(help="Commands for todo:")
+
+    # Add reminders
+    parser_add = subparsers.add_parser('add', help="Add reminders")
+    parser_add.add_argument('content', help="Text for your reminder",
+            required=True)
+    parser_add.add_argument('--catagory', help="Catagory of your reminder")
+    parser_add.add_argument('--due', help="Due date for your reminder")
+
+    # Remove reminders
+    parser_remove = subparsers.add_parser('remove', help="Remove reminders")
+    parser_remove.add_argument('serial', help="Numer of reminder to remove",
+            required=True)
+    parser_remove.add_argument('--yes', action='store_const', const=True,
+            help="Confirms the removal of reminder", dest='confirm',
+            default=None)
+
+    # Search reminders
+    parser_search = subparsers.add_parser('search', help="Search reminders")
+    parser_search.add_argument('content', help="Find reminders by content")
+    parser_search.add_argument('--due', help="Find reminders by due date")
+
+    # Show reminders
+    parser_show = subparsers.add_parser('show', help="Show reminders")
+    parser_show.add_argument('--number', help="Show a reminder by its number")
+    parser_show.add_argument('--catagory', help="Show reminders in a catagory")
+
+    args = parser.parse_args()
+    main(args)
