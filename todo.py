@@ -51,12 +51,15 @@ class ReminderExistsException(Exception):
 
 
 def _load_reminders(stream=None):
+    """Shortcut for loading the shelve with a context manager"""
+    # Necessary to reload stream for testing purposes
     if stream is None:
         stream = STREAM
     return closing(shelve.open(stream))
 
 
 def _iter_reminders():
+    """Privides an iterator for all of the reminders"""
     with _load_reminders() as reminders:
         catagories = (reminders[x] for x in reminders.keys() if x != 'serial')
         for reminder in chain(*catagories):
@@ -82,13 +85,23 @@ def _remove_reminder(reminder):
             reminders[reminder.catagory] = temp
 
 
-def retrieve_by_serial(serial):
+def search(target, field):
+    """Returns all matching reminders based on a given field and target data
+       Returns a list of matches
+    """
+    matches = []
+
     for reminder in _iter_reminders():
-        if reminder.serial == serial:
-            return reminder
+        if target == getattr(reminder, field):
+            matches.append(reminder)
+
+    return matches
 
 
-def search_by_content(content):
+def search_in_content(content):
+    """Searches for reminders by partial content
+       Returns a list of all matches
+    """
     matches = []
 
     for reminder in _iter_reminders():
