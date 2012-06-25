@@ -86,3 +86,13 @@ def retrieve_by_serial(serial):
     for reminder in _iter_reminders():
         if reminder.serial == serial:
             return reminder
+
+
+def search_by_content(content):
+    matches = []
+
+    for reminder in _iter_reminders():
+        if content in reminder.content:
+            matches.append(reminder)
+
+    return matches

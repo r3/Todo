@@ -9,18 +9,16 @@ from contextlib import closing
 
 
 class TestTodo():
-    sample = None
-
-    def setup_sample(self):
-        TestTodo.sample = [todo.Reminder('reminder 1', 'activities'),
-                           todo.Reminder('reminder 2', 'activities'),
-                           todo.Reminder('reminder 3', 'activities')]
+    sample = None  # populated in TestTodo.setup_db
 
     def setup_db(self):
         name = os.path.join(tempfile.mkdtemp(), 'todo.shelve')
         setattr(todo, 'STREAM', name)
 
-        self.setup_sample()
+        TestTodo.sample = [todo.Reminder('reminder 1', 'activities'),
+                           todo.Reminder('reminder 2', 'activities'),
+                           todo.Reminder('reminder 3', 'activities')]
+
         with closing(shelve.open(name)) as db:
             db['activities'] = TestTodo.sample
 
@@ -65,3 +63,6 @@ class TestTodo():
 
     def test_serial(self, reminder):
         assert reminder.serial == 4
+
+    def test_search_by_content(self):
+        assert todo.search_by_content("reminder") == TestTodo.sample
