@@ -109,3 +109,12 @@ def search_in_content(content):
             matches.append(reminder)
 
     return matches
+
+
+def reminder_exists(reminder):
+    """Check to determine of a reminder exists, returning a bool"""
+    for item in _iter_reminders():
+        if item == reminder:
+            return True
+
+    return False

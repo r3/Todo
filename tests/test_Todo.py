@@ -68,4 +68,11 @@ class TestTodo():
         assert todo.search('reminder 1', 'content')[0] == TestTodo.sample[0]
 
     def test_search_in_content(self):
-        assert todo.search_in_content("reminder") == TestTodo.sample
+        assert todo.search_in_content('reminder') == TestTodo.sample
+
+    def test_reminder_exists_True(self, reminder):
+        assert todo.reminder_exists(TestTodo.sample[0])
+
+    def test_reminder_exists_False(self):
+        reminder = todo.Reminder('New Reminder')
+        assert todo.reminder_exists(reminder) == False
