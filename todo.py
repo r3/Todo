@@ -13,7 +13,7 @@ class Reminder():
         self.serial = Reminder.next_serial()
         self.date = date if date else datetime.datetime.now()
         self.content = content
-        self.catagory = catagory
+        self.catagory = catagory if catagory else 'general'
         self.date_due = date_due
 
     def __eq__(self, other):
@@ -47,6 +47,10 @@ class Reminder():
 
 
 class ReminderExistsException(Exception):
+    pass
+
+
+class ReminderDoesNotExist(Exception):
     pass
 
 
@@ -118,3 +122,11 @@ def reminder_exists(reminder):
             return True
 
     return False
+
+
+def add_reminder(reminder):
+    """Adds a reminder to the database unless it already exists"""
+    if reminder_exists(reminder):
+        raise ReminderExistsException("Reminder already exists")
+
+    _append_reminder(reminder)

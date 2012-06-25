@@ -76,3 +76,12 @@ class TestTodo():
     def test_reminder_exists_False(self):
         reminder = todo.Reminder('New Reminder')
         assert todo.reminder_exists(reminder) == False
+
+    def test_add_existing_reminder(self):
+        with pytest.raises(todo.ReminderExistsException):
+            todo.add_reminder(TestTodo.sample[0])
+
+    def test_add_new_reminder(self):
+        reminder = todo.Reminder('This should not clash')
+        todo.add_reminder(reminder)
+        assert todo.reminder_exists(reminder)
