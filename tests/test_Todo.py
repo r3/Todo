@@ -41,13 +41,6 @@ class TestTodo():
     def pytest_funcarg__reminder(self, request):
         return request.cached_setup(self.setup_reminder, scope='class')
 
-    def setup_args_add(self):
-        args = Namedtuple('args', ('content', 'catagory', 'date_due'))
-        return args
-
-    def pytest_funcarg__args_add(self, request):
-        return request.cached_setup(self.setup_reminder, scope='class')
-
     # Test basic backend methods
     def test_proper_setup(self, db):
         with closing(shelve.open(db)) as reminders:
@@ -138,26 +131,28 @@ class TestTodo():
             todo.parse_date('Parse This!')
 
     # Test subparser methods
-    #def test_add_content(self, args):
-        #arguments = args("This is my reminder content", None, None)
+    def test_add_content(self):
+        args = {'content': "This is my reminder content", 'catagory': None,
+                'date_due': None, 'date': None}
+        Namespace = namedtuple('Namespace', args)
+        reminder = todo.Reminder(**args)
+        todo.add(Namespace(**args))
+        assert todo.reminder_exists(reminder)
+
+    #def test_add_content_and_catagory(self, args_add):
+        #arguments = args("Another reminder", 'catagory', None, None)
         #reminder = todo.Reminder(**arguments)
         #todo.add(arguments)
         #assert todo.reminder_exists(reminder)
 
-    #def test_add_content_and_catagory(self, args):
-        #arguments = args("Another reminder", 'catagory', None)
+    #def test_add_content_and_due(self, args_add):
+        #arguments = args("More content", None, 'tomorrow', None)
         #reminder = todo.Reminder(**arguments)
         #todo.add(arguments)
         #assert todo.reminder_exists(reminder)
 
-    #def test_add_content_and_due(self, args):
-        #arguments = args("More content", None, 'tomorrow')
-        #reminder = todo.Reminder(**arguments)
-        #todo.add(arguments)
-        #assert todo.reminder_exists(reminder)
-
-    #def test_add_content_catagory_and_due(self, args):
-        #arguments = args("All three, baby", 'catagory', '11/6')
+    #def test_add_content_catagory_and_due(self, args_add):
+        #arguments = args("All three, baby", 'catagory', '11/6', None)
         #reminder = todo.reminder(**arguments)
         #todo.add(arguments)
         #assert todo.reminder_exists(reminder)

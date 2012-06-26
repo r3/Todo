@@ -72,6 +72,10 @@ class InvalidDateException(Exception):
     pass
 
 
+class NoContentException(Exception):
+    pass
+
+
 # Implementation details
 def _load_reminders(stream=None):
     """Shortcut for loading the shelve with a context manager"""
@@ -188,7 +192,17 @@ def parse_date(date):
 # Argument functions called depending on subparser used
 def add(args):
     """Called by the 'add' subparser"""
-    reminder = Reminder(**args)
+    if not args.content:
+        raise NoContentException("Reminders require some content")
+
+    arguments = {'content': args.content}
+
+    if args.date_due:
+        arguments['date_due'] = parse_date(args.date_due)
+    if args.catagory:
+        arguments['catagory'] = args.catagory
+
+    reminder = Reminder(**arguments)
     add_reminder(reminder)
 
 
