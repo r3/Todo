@@ -203,6 +203,7 @@ def add(args):
         arguments['catagory'] = args.catagory
 
     reminder = Reminder(**arguments)
+    print("Adding {}".format(reminder))
     add_reminder(reminder)
 
 

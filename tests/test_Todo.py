@@ -131,28 +131,36 @@ class TestTodo():
             todo.parse_date('Parse This!')
 
     # Test subparser methods
-    def test_add_content(self):
-        args = {'content': "This is my reminder content", 'catagory': None,
-                'date_due': None, 'date': None}
+    def add_helper(self, args):
         Namespace = namedtuple('Namespace', args)
         reminder = todo.Reminder(**args)
         todo.add(Namespace(**args))
+        return reminder
+
+    def test_add_content(self):
+        reminder = self.add_helper({'content': "This is my reminder content",
+            'catagory': None, 'date_due': None, 'date': None})
         assert todo.reminder_exists(reminder)
 
-    #def test_add_content_and_catagory(self, args_add):
-        #arguments = args("Another reminder", 'catagory', None, None)
-        #reminder = todo.Reminder(**arguments)
-        #todo.add(arguments)
-        #assert todo.reminder_exists(reminder)
+    def test_add_content_and_catagory(self):
+        reminder = self.add_helper({'content': "This is new reminder content",
+            'catagory': 'general', 'date_due': None, 'date': None})
+        assert todo.reminder_exists(reminder)
 
-    #def test_add_content_and_due(self, args_add):
-        #arguments = args("More content", None, 'tomorrow', None)
-        #reminder = todo.Reminder(**arguments)
-        #todo.add(arguments)
-        #assert todo.reminder_exists(reminder)
+    def test_add_content_and_due(self):
+        reminder = self.add_helper({'content': "New reminder content",
+            'catagory': None, 'date_due': 'today', 'date': None})
+        reminder.date_due = todo.parse_date('today')
+        assert todo.reminder_exists(reminder)
 
-    #def test_add_content_catagory_and_due(self, args_add):
-        #arguments = args("All three, baby", 'catagory', '11/6', None)
-        #reminder = todo.reminder(**arguments)
-        #todo.add(arguments)
-        #assert todo.reminder_exists(reminder)
+    def test_add_content_catagory_and_due(self):
+        reminder = self.add_helper({'content': "New reminder content",
+            'catagory': 'cats are evil', 'date_due': '2 weeks', 'date': None})
+        reminder.date_due = todo.parse_date('2 weeks')
+        assert todo.reminder_exists(reminder)
+
+    def test_add_no_content_failure(self):
+        arguments = {'content': None, 'catagory': None, 'date_due': None,
+                     'date': None}
+        with pytest.raises(todo.NoContentException):
+            self.add_helper(arguments)
