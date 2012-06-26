@@ -215,7 +215,18 @@ def remove(args):
 
 def search(args):
     """Called by the 'search' subparser"""
-    pass
+    reminders = search_in_content(args.content)
+
+    if args.date_due:
+        matches = []
+
+        for reminder in reminders:
+            if reminder.date_due == args.date_due:
+                matches.append(reminder)
+
+        return matches
+
+    return reminders
 
 
 def show(args):
@@ -247,7 +258,8 @@ if __name__ == '__main__':
     # Search reminders
     parser_search = subparsers.add_parser('search', help="Search reminders")
     parser_search.add_argument('content', help="Find reminders by content")
-    parser_search.add_argument('--due', help="Find reminders by due date")
+    parser_search.add_argument('--due', help="Find reminders by due date",
+            dest='date_due', default=None)
     parser_search.set_defaults(func=search)
 
     # Show reminders

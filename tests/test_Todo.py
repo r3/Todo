@@ -18,9 +18,9 @@ class TestTodo():
         name = os.path.join(tempfile.mkdtemp(), 'todo.shelve')
         setattr(todo, 'STREAM', name)
 
-        TestTodo.sample = [todo.Reminder('reminder 1', 'activities'),
-                           todo.Reminder('reminder 2', 'activities'),
-                           todo.Reminder('reminder 3', 'activities')]
+        TestTodo.sample = [todo.Reminder('test reminder 1', 'activities'),
+                           todo.Reminder('test reminder 2', 'activities'),
+                           todo.Reminder('test reminder 3', 'activities')]
 
         with closing(shelve.open(name)) as db:
             db['activities'] = TestTodo.sample
@@ -70,7 +70,7 @@ class TestTodo():
 
     # Test backend methods
     def test_search_field(self):
-        assert todo.search_field('reminder 1', 'content')[0] == TestTodo.sample[0]
+        assert todo.search_field('test reminder 1', 'content')[0] == TestTodo.sample[0]
 
     def test_search_in_content(self):
         assert todo.search_in_content('reminder') == TestTodo.sample
@@ -173,3 +173,14 @@ class TestTodo():
         args = Namespace(reminder.serial, True)
         with pytest.raises(todo.ReminderDoesNotExistException):
             todo.remove(args)
+
+    # Search subparser
+    def test_search_one_match(self):
+        Namespace = namedtuple('Namespace', ('content', 'date_due'))
+        args = Namespace('reminder 1', None)
+        assert todo.search(args)[0] == TestTodo.sample[0]
+
+    def test_search_multi_match(self):
+        Namespace = namedtuple('Namespace', ('content', 'date_due'))
+        args = Namespace('test', None)
+        assert todo.search(args) == TestTodo.sample
