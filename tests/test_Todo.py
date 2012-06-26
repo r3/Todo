@@ -131,6 +131,7 @@ class TestTodo():
             todo.parse_date('Parse This!')
 
     # Test subparser methods
+    # Add subparser
     def add_helper(self, args):
         Namespace = namedtuple('Namespace', args)
         reminder = todo.Reminder(**args)
@@ -159,8 +160,16 @@ class TestTodo():
         reminder.date_due = todo.parse_date('2 weeks')
         assert todo.reminder_exists(reminder)
 
-    def test_add_no_content_failure(self):
-        arguments = {'content': None, 'catagory': None, 'date_due': None,
-                     'date': None}
-        with pytest.raises(todo.NoContentException):
-            self.add_helper(arguments)
+    # Remove subparser
+    def test_remove_noconfirm(self, reminder):
+        todo.add_reminder(reminder)
+        Namespace = namedtuple('Namespace', ('serial', 'confirm'))
+        args = Namespace(reminder.serial, True)
+        todo.remove(args)
+        assert todo.reminder_exists(reminder) == False
+
+    def test_remove_fail(self, reminder):
+        Namespace = namedtuple('Namespace', ('serial', 'confirm'))
+        args = Namespace(reminder.serial, True)
+        with pytest.raises(todo.ReminderDoesNotExistException):
+            todo.remove(args)

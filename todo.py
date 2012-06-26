@@ -72,10 +72,6 @@ class InvalidDateException(Exception):
     pass
 
 
-class NoContentException(Exception):
-    pass
-
-
 # Implementation details
 def _load_reminders(stream=None):
     """Shortcut for loading the shelve with a context manager"""
@@ -122,6 +118,9 @@ def search_field(target, field):
     for reminder in _iter_reminders():
         if target == getattr(reminder, field):
             matches.append(reminder)
+
+    if not matches:
+        raise ReminderDoesNotExistException("Could not find matching reminder")
 
     return matches
 
@@ -192,9 +191,6 @@ def parse_date(date):
 # Argument functions called depending on subparser used
 def add(args):
     """Called by the 'add' subparser"""
-    if not args.content:
-        raise NoContentException("Reminders require some content")
-
     arguments = {'content': args.content}
 
     if args.date_due:
@@ -203,13 +199,18 @@ def add(args):
         arguments['catagory'] = args.catagory
 
     reminder = Reminder(**arguments)
-    print("Adding {}".format(reminder))
     add_reminder(reminder)
 
 
 def remove(args):
     """Called by the 'remove' subparser"""
-    pass
+    reminder = search_field(args.serial, 'serial')[0]
+    if not args.confirm:
+        print("Remove {}?".format(reminder))
+        confirm = input('(y/N)').lower() in ('y', 'yes')
+
+    if args.confirm or confirm:
+        _remove_reminder(reminder)
 
 
 def search(args):
