@@ -24,7 +24,7 @@ class Reminder():
     """A reminder unit with a date, optional due date, catagory, and content"""
     def __init__(self, content=None, catagory=None, date_due=None, date=None):
         self.serial = Reminder.next_serial()
-        self.date = date if date else datetime.datetime.now()
+        self.date = date if date else datetime.date.today()
         self.content = content
         self.catagory = catagory if catagory else 'general'
         self.date_due = date_due
@@ -163,7 +163,26 @@ def delete_reminder(reminder):
 
 def parse_date(date):
     """Parses date strings such as 'tomorrow' or '03/08' to valid datetime"""
-    pass
+    trans = {'today': datetime.date.today(),
+             'tomorrow': datetime.date.today() + datetime.timedelta(days=1)}
+
+    relative = {'days': datetime.timedelta(days=1),
+                'weeks': datetime.timedelta(days=7)}
+
+    if date in trans:
+        return trans[date]
+
+    try:
+        number, time = date.split()
+        # Handle things like '1 day' which should be 'tomorrow', but meh
+        if time + 's' in relative:
+            time += 's'
+        if time in relative:
+            return datetime.date.today() + (int(number) * relative[time])
+    except ValueError:
+        raise InvalidDateException("Cannot parse time: {}".format(date))
+
+    raise InvalidDateException("Cannot parse time: {}".format(date))
 
 
 # Argument functions called depending on subparser used
@@ -195,8 +214,7 @@ if __name__ == '__main__':
 
     # Add reminders
     parser_add = subparsers.add_parser('add', help="Add reminders")
-    parser_add.add_argument('content', help="Text for your reminder",
-            required=True)
+    parser_add.add_argument('content', help="Text for your reminder")
     parser_add.add_argument('--catagory', help="Catagory of your reminder")
     parser_add.add_argument('--due', help="Due date for your reminder",
             dest='date_due')
@@ -204,8 +222,7 @@ if __name__ == '__main__':
 
     # Remove reminders
     parser_remove = subparsers.add_parser('remove', help="Remove reminders")
-    parser_remove.add_argument('serial', help="Numer of reminder to remove",
-            required=True)
+    parser_remove.add_argument('serial', help="Numer of reminder to remove")
     parser_remove.add_argument('--yes', action='store_const', const=True,
             help="Confirms the removal of reminder", dest='confirm',
             default=None)
