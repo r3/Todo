@@ -108,6 +108,15 @@ def _remove_reminder(reminder):
             reminders[reminder.catagory] = temp
 
 
+def _print_results(results):
+    """Helper function used to display results"""
+    try:
+        for result in results:
+            print(result)
+    except TypeError:
+        print(results)
+
+
 # Workhorse functions called by argument functions
 def search_field(target, field):
     """Returns all matching reminders based on a given field and target data
@@ -200,6 +209,7 @@ def add(args):
 
     reminder = Reminder(**arguments)
     add_reminder(reminder)
+    print("Reminder added successfully")
 
 
 def remove(args):
@@ -211,6 +221,7 @@ def remove(args):
 
     if args.confirm or confirm:
         _remove_reminder(reminder)
+        print("Reminder removed successfully")
 
 
 def search(args):
@@ -227,17 +238,22 @@ def search(args):
             if reminder.date_due == args.date_due:
                 matches.append(reminder)
 
-        return matches
+        return _print_results(matches)
 
     elif args.date_due:
-        return search_field(args.date_due, 'date_due')
+        return _print_results(search_field(args.date_due, 'date_due'))
 
-    return reminders
+    return _print_results(reminders)
 
 
 def show(args):
     """Called by the 'show' subparser"""
-    pass
+    if args.serial:
+        return _print_results(search_field(args.serial, 'serial')[0])
+    elif args.catagory:
+        return _print_results(search_field(args.catagory, 'catagory'))
+    else:
+        return _print_results(list(_iter_reminders()))
 
 
 if __name__ == '__main__':
@@ -271,9 +287,12 @@ if __name__ == '__main__':
 
     # Show reminders
     parser_show = subparsers.add_parser('show', help="Show reminders")
-    parser_show.add_argument('--number', help="Show a reminder by its number",
-            dest='serial')
-    parser_show.add_argument('--catagory', help="Show reminders in a catagory")
+    group = parser_show.add_mutually_exclusive_group()
+    group.add_argument('--number', help="Show a reminder by its number",
+            dest='serial', default=None)
+    group.add_argument('--catagory', help="Show reminders in a catagory",
+            default=None)
     parser_show.set_defaults(func=show)
 
     args = parser.parse_args()
+    args.func(args)

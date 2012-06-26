@@ -176,11 +176,13 @@ class TestTodo():
 
     # Search subparser
     def test_search_one_match(self):
+        setattr(todo, '_print_results', lambda x: x)
         Namespace = namedtuple('Namespace', ('content', 'date_due'))
         args = Namespace('reminder 1', None)
         assert todo.search(args)[0] == TestTodo.sample[0]
 
     def test_search_multi_match(self):
+        setattr(todo, '_print_results', lambda x: x)
         Namespace = namedtuple('Namespace', ('content', 'date_due'))
         args = Namespace('test', None)
         assert todo.search(args) == TestTodo.sample
