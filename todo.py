@@ -12,11 +12,14 @@
 import shelve
 import datetime
 import argparse
+import subprocess
+import tempfile
+import os
 
 from itertools import chain
 from contextlib import closing
 
-STREAM = 'todo.shelve'
+STREAM = os.path.join(os.getenv('HOME'), '.todo.shelve')
 
 
 # Each added reminder is an instance of the following class
@@ -232,7 +235,15 @@ def parse_date(date):
 # Argument functions called depending on subparser used
 def add(args):
     """Called by the 'add' subparser"""
-    arguments = {'content': args.content}
+    arguments = {}
+
+    if not args.content:
+        content = tempfile.mktemp()
+        subprocess.call([os.getenv('EDITOR'), content])
+        with open(content) as text:
+            arguments['content'] = '\n'.join(text.readlines()).strip()
+    else:
+        arguments['content'] = args.content
 
     if args.date_due:
         arguments['date_due'] = parse_date(args.date_due)
@@ -307,7 +318,7 @@ if __name__ == '__main__':
     parser_add = subparsers.add_parser('add', help="add reminders")
     parser_add.add_argument('content', help="""text for your reminder. If
             omitted, your $EDITOR will be launched to produce the reminder
-            text""")
+            content""", nargs='?', default=None)
     parser_add.add_argument('--catagory', '-c', help="""catagory of your
             reminder (default: 'general')""")
     parser_add.add_argument('--due', '-d', help="""due date for your reminder

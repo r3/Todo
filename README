@@ -6,9 +6,11 @@ Author: Ryan Roler (ryan.roler@gmail.com)
 Description:
 Trivial Todo is a basic reminder system for handling notes. It allows the user
 to record notices and catagories for those notices, even due dates. You can
-search your notices by content or due dates, print out all of the reminders in a
-catagory, or simply print them all out. Once you've completed one of your
+search your notices by content or due dates, print out all of the reminders in
+a catagory, or simply print them all out. Once you've completed one of your
 reminders, you can delete it.
+
+Reminders are stored using Python's shelve and pickle system in ~/.todo.shelve
 
 Instructions:
     Make the file executable: chmod +x todo.py
@@ -20,16 +22,11 @@ General Use:
     todo.py show [--catagory whatever] [--number 2]
     todo.py search "search" [--due tomorrow]
 
-    For more help, try todo.py subcommand --help (example: todo.py add --help)
-
-Incomplete Features:
-    I need to allow for further time designations to be parsed. Currently,
-    todo.py only handles things like '3 days' or '1 week' or even 'today' and
-    'tomorrow', but it needs to support non-relative dates like 03/08.
+For more help, try todo.py subcommand --help (example: todo.py add --help)
 
                 -------------------------------------------
 
-In the future, I'll build this into a package and add features. Please feel free
-to contact me and make suggestions or bug reports.
+In the future, I'll build this into a package and add features. Please feel
+free to contact me and make suggestions or bug reports.
 
 r3
