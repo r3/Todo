@@ -130,6 +130,19 @@ class TestTodo():
         with pytest.raises(todo.InvalidDateException):
             todo.parse_date('Parse This!')
 
+    def test_time_parse_month_day(self):
+        year = datetime.date.today().year
+        time = datetime.date(year, 3, 8)
+        assert todo.parse_date('3/8') == time
+        assert todo.parse_date('3-8') == time
+        assert todo.parse_date('3.8') == time
+
+    def test_time_parse_month_day_year(self):
+        time = datetime.date(2013, 3, 8)
+        assert todo.parse_date('3/8/2013') == time
+        assert todo.parse_date('3-8-2013') == time
+        assert todo.parse_date('3.8.2013') == time
+
     # Test subparser methods
     # Add subparser
     def add_helper(self, args):

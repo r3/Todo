@@ -12,19 +12,19 @@ reminders, you can delete it.
 
 Instructions:
     Make the file executable: chmod +x todo.py
-    Read the general usage help: ./todo --help
+    Read the general usage help: ./todo.py --help
 
 General Use:
-    todo add "Reminder contents" [--catagory whatever] [--due tomorrow]
-    todo remove 2
-    todo show [--catagory whatever] [--number 2]
-    todo search "search" [--due tomorrow]
+    todo.py add "Reminder contents" [--catagory whatever] [--due tomorrow]
+    todo.py remove 2
+    todo.py show [--catagory whatever] [--number 2]
+    todo.py search "search" [--due tomorrow]
 
-    For more help, try todo subcommand --help (example: todo add --help)
+    For more help, try todo.py subcommand --help (example: todo.py add --help)
 
 Incomplete Features:
-    I need to allow for further time designations to be parsed. Currently, todo
-    only handles things like '3 days' or '1 week' or even 'today' and
+    I need to allow for further time designations to be parsed. Currently,
+    todo.py only handles things like '3 days' or '1 week' or even 'today' and
     'tomorrow', but it needs to support non-relative dates like 03/08.
 
                 -------------------------------------------

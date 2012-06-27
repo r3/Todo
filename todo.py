@@ -176,17 +176,24 @@ def delete_reminder(reminder):
     _remove_reminder(reminder)
 
 
-def parse_date(date):
-    """Parses date strings such as 'tomorrow' or '03/08' to valid datetime"""
-    trans = {'today': datetime.date.today(),
-             'tomorrow': datetime.date.today() + datetime.timedelta(days=1)}
+def _parse_absolute_date(date, sep):
+    try:
+        if date.count(sep) == 1:
+            month, day = date.split(sep)
+            year = datetime.date.today().year
+        elif date.count(sep) == 2:
+            month, day, year = date.split(sep)
+        else:
+            raise InvalidDateException("Cannot parse time: {}".format(date))
 
+        return datetime.date(int(year), int(month), int(day))
+    except ValueError:
+        raise InvalidDateException("Cannot parse time: {}".format(date))
+
+
+def _parse_relative_date(date):
     relative = {'days': datetime.timedelta(days=1),
                 'weeks': datetime.timedelta(days=7)}
-
-    if date in trans:
-        return trans[date]
-
     try:
         number, time = date.split()
         # Handle things like '1 day' which should be 'tomorrow', but meh
@@ -196,6 +203,26 @@ def parse_date(date):
             return datetime.date.today() + (int(number) * relative[time])
     except ValueError:
         raise InvalidDateException("Cannot parse time: {}".format(date))
+
+    raise InvalidDateException("Cannot parse time: {}".format(date))
+
+
+def parse_date(date):
+    """Parses date strings such as 'tomorrow' or '03/08' to valid datetime"""
+    trans = {'today': datetime.date.today(),
+             'tomorrow': datetime.date.today() + datetime.timedelta(days=1)}
+
+    if date in trans:
+        return trans[date]
+
+    if '/' in date:
+        return _parse_absolute_date(date, '/')
+    elif '.' in date:
+        return _parse_absolute_date(date, '.')
+    elif '-' in date:
+        return _parse_absolute_date(date, '-')
+    elif ' ' in date:
+        return _parse_relative_date(date)
 
     raise InvalidDateException("Cannot parse time: {}".format(date))
 
