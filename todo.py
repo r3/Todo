@@ -111,6 +111,39 @@ def _remove_reminder(reminder):
             reminders[reminder.catagory] = temp
 
 
+def _parse_absolute_date(date, sep):
+    """Helper function that handles parsing relative times like '03/08'"""
+    try:
+        if date.count(sep) == 1:
+            month, day = date.split(sep)
+            year = datetime.date.today().year
+        elif date.count(sep) == 2:
+            month, day, year = date.split(sep)
+        else:
+            raise InvalidDateException("Cannot parse time: {}".format(date))
+
+        return datetime.date(int(year), int(month), int(day))
+    except ValueError:
+        raise InvalidDateException("Cannot parse time: {}".format(date))
+
+
+def _parse_relative_date(date):
+    """Helper function that handles parsing relative times like '2 weeks'"""
+    relative = {'days': datetime.timedelta(days=1),
+                'weeks': datetime.timedelta(days=7)}
+    try:
+        number, time = date.split()
+        # Handle things like '1 day' which should be 'tomorrow', but meh
+        if time + 's' in relative:
+            time += 's'
+        if time in relative:
+            return datetime.date.today() + (int(number) * relative[time])
+    except ValueError:
+        raise InvalidDateException("Cannot parse time: {}".format(date))
+
+    raise InvalidDateException("Cannot parse time: {}".format(date))
+
+
 def _print_results(results):
     """Helper function used to display results"""
     try:
@@ -174,37 +207,6 @@ def delete_reminder(reminder):
                " attempting to remove does not exist.")
 
     _remove_reminder(reminder)
-
-
-def _parse_absolute_date(date, sep):
-    try:
-        if date.count(sep) == 1:
-            month, day = date.split(sep)
-            year = datetime.date.today().year
-        elif date.count(sep) == 2:
-            month, day, year = date.split(sep)
-        else:
-            raise InvalidDateException("Cannot parse time: {}".format(date))
-
-        return datetime.date(int(year), int(month), int(day))
-    except ValueError:
-        raise InvalidDateException("Cannot parse time: {}".format(date))
-
-
-def _parse_relative_date(date):
-    relative = {'days': datetime.timedelta(days=1),
-                'weeks': datetime.timedelta(days=7)}
-    try:
-        number, time = date.split()
-        # Handle things like '1 day' which should be 'tomorrow', but meh
-        if time + 's' in relative:
-            time += 's'
-        if time in relative:
-            return datetime.date.today() + (int(number) * relative[time])
-    except ValueError:
-        raise InvalidDateException("Cannot parse time: {}".format(date))
-
-    raise InvalidDateException("Cannot parse time: {}".format(date))
 
 
 def parse_date(date):
@@ -287,41 +289,56 @@ def show(args):
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description=("Trivial todo keeps track"
-        " of your reminders!"))
+    parser = argparse.ArgumentParser(
+        description="""Trivial Todo keeps track of your reminders. Remember to
+        enclose multi-word arguments in quotes! For help on the sub commands,
+        use todo COMMAND --help (eg. todo add --help)""",
+
+        epilog="""Note on dates: Trivial todo allows dates to be entered in
+        either absolute or relative form. Relative form appears as 'today',
+        'tomorrow', or even '6 weeks'. Absolute form is in the order of month,
+        day, year. Year is optional in absolute form and will use the current
+        year if omitted. Either a period, dash or slash may be used (eg. 03/08
+        or 03.08 or 03-08).""")
+
     subparsers = parser.add_subparsers(help="Commands for todo:")
 
     # Add reminders
-    parser_add = subparsers.add_parser('add', help="Add reminders")
-    parser_add.add_argument('content', help="Text for your reminder")
-    parser_add.add_argument('--catagory', help="Catagory of your reminder")
-    parser_add.add_argument('--due', help="Due date for your reminder",
-            dest='date_due')
+    parser_add = subparsers.add_parser('add', help="add reminders")
+    parser_add.add_argument('content', help="""text for your reminder. If
+            omitted, your $EDITOR will be launched to produce the reminder
+            text""")
+    parser_add.add_argument('--catagory', '-c', help="""catagory of your
+            reminder (default: 'general')""")
+    parser_add.add_argument('--due', '-d', help="""due date for your reminder
+            (default: None)""", dest='date_due')
     parser_add.set_defaults(func=add)
 
     # Remove reminders
-    parser_remove = subparsers.add_parser('remove', help="Remove reminders")
-    parser_remove.add_argument('serial', help="Numer of reminder to remove")
-    parser_remove.add_argument('--yes', action='store_const', const=True,
-            help="Confirms the removal of reminder", dest='confirm',
-            default=None)
+    parser_remove = subparsers.add_parser('remove', help="""remove reminders
+            by number""")
+    parser_remove.add_argument('serial', help="""number of the reminder to be
+            removed""", metavar='number')
+    parser_remove.add_argument('--yes', '-y', action='store_const',
+            const=True, help="""bypasses request for approval before removing
+            the reminder""", dest='confirm', default=None)
     parser_remove.set_defaults(func=remove)
 
     # Search reminders
-    parser_search = subparsers.add_parser('search', help="Search reminders")
-    parser_search.add_argument('content', help="Find reminders by content",
+    parser_search = subparsers.add_parser('search', help="search reminders")
+    parser_search.add_argument('content', help="find reminders by content",
             nargs='?', default=None)
-    parser_search.add_argument('--due', help="Find reminders by due date",
+    parser_search.add_argument('--due', '-d', help="find reminders by due date",
             dest='date_due', default=None)
     parser_search.set_defaults(func=search)
 
     # Show reminders
-    parser_show = subparsers.add_parser('show', help="Show reminders")
+    parser_show = subparsers.add_parser('show', help="show reminders")
     group = parser_show.add_mutually_exclusive_group()
-    group.add_argument('--number', help="Show a reminder by its number",
-            dest='serial', default=None)
-    group.add_argument('--catagory', help="Show reminders in a catagory",
-            default=None)
+    group.add_argument('--number', '-n', help="show a reminder by its number",
+            dest='serial', default=None, metavar='NUMBER')
+    group.add_argument('--catagory', '-c', help="""show reminders in a
+            catagory""", default=None)
     parser_show.set_defaults(func=show)
 
     args = parser.parse_args()
