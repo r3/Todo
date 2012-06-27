@@ -46,8 +46,11 @@ class Reminder():
         return True
 
     def __str__(self):
-        return "{catagory}: {date} - {content} (Due: {date_due})".format(
-                **self.__dict__)
+        string = "{catagory}: #{serial} - {content}"
+        if self.date_due:
+            string += " (Due: {date_due})"
+
+        return string.format(**self.__dict__)
 
     @staticmethod
     def next_serial():
