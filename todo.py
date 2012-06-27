@@ -217,7 +217,7 @@ def add(args):
 
 def remove(args):
     """Called by the 'remove' subparser"""
-    reminder = search_field(args.serial, 'serial')[0]
+    reminder = search_field(int(args.serial), 'serial')[0]
     if not args.confirm:
         print("Remove {}?".format(reminder))
         confirm = input('(y/N)').lower() in ('y', 'yes')
