@@ -4,13 +4,14 @@
     https://github.com/r3/Todo
 
     Author: Ryan Roler (ryan.roler@gmail.com)
-    Requires: Python 3
+    Requires: Python 2 or 3
 
     Trivial Todo is a command line driven program used to track reminders. It
     is capable of handling due dates, catagories for your reminders, and more.
     Use `todo --help` for a complete list of options.
 """
 
+import sys
 import shelve
 import datetime
 import argparse
@@ -21,7 +22,7 @@ import os
 from itertools import chain
 from contextlib import closing
 
-STREAM = os.path.join(os.getenv('HOME'), '.todo.shelve')
+DB = os.path.join(os.getenv('HOME'), '.todo.shelve')
 
 
 # Each added reminder is an instance of the following class
@@ -80,12 +81,33 @@ class InvalidDateException(Exception):
     pass
 
 
+class InvalidSerialException(Exception):
+    pass
+
+
+class DatabaseDoesNotExistException(Exception):
+    pass
+
+
 # Implementation details
+def _confirm():
+    """Handles user input for confirming various questions
+       Allows Trivial Todo to work with both Python 2 & 3
+    """
+    prompt = "(y/N)"
+    if sys.version_info.major == 3:
+        inpt = input(prompt)
+    else:
+        inpt = raw_input(prompt)
+
+    return inpt.lower() in ('y', 'yes')
+
+
 def _load_reminders(stream=None):
     """Shortcut for loading the shelve with a context manager"""
     # Necessary to reload stream for testing purposes
     if stream is None:
-        stream = STREAM
+        stream = DB
     return closing(shelve.open(stream))
 
 
@@ -151,11 +173,31 @@ def _parse_relative_date(date):
 
 def _print_results(results):
     """Helper function used to display results"""
+    catagories = {}
     try:
         for result in results:
-            print(result)
+            catagories.setdefault(result.catagory, []).append(result)
+
+        for catagory in catagories:
+            print("{}:".format(catagory))
+            for reminder in catagories[catagory]:
+                string = "\t#{serial} - {content}"
+
+                if reminder.date_due:
+                    string += " ({date_due})"
+
+                print(string.format(**reminder.__dict__))
+
     except TypeError:
         print(results)
+
+
+def _create_new_database(path):
+    """Used when specified shelve database does not exist"""
+    print("Database at '{}' does not exist, create it?".format(path))
+    if _confirm():
+        return True
+    raise DatabaseDoesNotExistException("Specified database does not exist")
 
 
 # Workhorse functions called by argument functions
@@ -262,9 +304,8 @@ def remove(args):
     reminder = search_field(int(args.serial), 'serial')[0]
     if not args.confirm:
         print("Remove '{}'?".format(reminder))
-        confirm = input('(y/N) ').lower() in ('y', 'yes')
 
-    if args.confirm or confirm:
+    if args.confirm or _confirm():
         _remove_reminder(reminder)
         print("Reminder removed successfully")
 
@@ -294,7 +335,10 @@ def search(args):
 def show(args):
     """Called by the 'show' subparser"""
     if args.serial:
-        return _print_results(search_field(args.serial, 'serial')[0])
+        try:
+            return _print_results(search_field(int(args.serial), 'serial')[0])
+        except ValueError:
+            raise InvalidSerialException("{} is not a valid serial number")
     elif args.catagory:
         return _print_results(search_field(args.catagory, 'catagory'))
     else:
@@ -313,6 +357,8 @@ if __name__ == '__main__':
         day, year. Year is optional in absolute form and will use the current
         year if omitted. Either a period, dash or slash may be used (eg. 03/08
         or 03.08 or 03-08).""")
+
+    parser.add_argument('--db', '-d', help="Use specified shelve database")
 
     subparsers = parser.add_subparsers(help="Commands for todo:")
 
@@ -355,4 +401,13 @@ if __name__ == '__main__':
     parser_show.set_defaults(func=show)
 
     args = parser.parse_args()
+
+    if args.db:
+        if not os.path.exists(args.db):
+            _create_new_database(args.db)
+        DB = args.db
+    else:
+        if not os.path.exists(DB):
+            _create_new_database(DB)
+
     args.func(args)

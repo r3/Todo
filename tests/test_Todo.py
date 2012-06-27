@@ -16,7 +16,7 @@ class TestTodo():
     # Setup/teardown/helper methods to be used in later tests
     def setup_db(self):
         name = os.path.join(tempfile.mkdtemp(), 'todo.shelve')
-        setattr(todo, 'STREAM', name)
+        setattr(todo, 'DB', name)
 
         TestTodo.sample = [todo.Reminder('test reminder 1', 'activities'),
                            todo.Reminder('test reminder 2', 'activities'),
