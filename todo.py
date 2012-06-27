@@ -3,6 +3,8 @@
 
     https://github.com/r3/Todo
 
+    Author: Ryan Roler (ryan.roler@gmail.com)
+    Requires: Python 3
 
     Trivial Todo is a command line driven program used to track reminders. It
     is capable of handling due dates, catagories for your reminders, and more.
@@ -259,8 +261,8 @@ def remove(args):
     """Called by the 'remove' subparser"""
     reminder = search_field(int(args.serial), 'serial')[0]
     if not args.confirm:
-        print("Remove {}?".format(reminder))
-        confirm = input('(y/N)').lower() in ('y', 'yes')
+        print("Remove '{}'?".format(reminder))
+        confirm = input('(y/N) ').lower() in ('y', 'yes')
 
     if args.confirm or confirm:
         _remove_reminder(reminder)
