@@ -1,0 +1,14 @@
+Short-Term Goals:
+    Build a method for pretty printing multiple reminders.
+
+    Build a method for compacting serial numbers on reminders so that when
+    they build up and are sparse, they can be made reasonable again without
+    deleting the whole database of them.
+
+    Create a package for Trivial Todo and upload it to Pypi so that it may be
+    run in a reasonable way, rather than ./todo.py or python todo.py
+
+Long-Term Goals:
+    Create GUI. Maybe. Probably not.
+
+    Test with larger database. Optimization may be necessary.
