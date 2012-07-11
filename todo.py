@@ -31,12 +31,12 @@ DB = os.path.join(os.getenv('HOME'), '.todo.shelve')
 
 # Each added reminder is an instance of the following class
 class Reminder():
-    """A reminder unit with a date, optional due date, catagory, and content"""
-    def __init__(self, content=None, catagory=None, date_due=None, date=None):
+    """A reminder unit with a date, optional due date, category, and content"""
+    def __init__(self, content=None, category=None, date_due=None, date=None):
         self.serial = Reminder.next_serial()
         self.date = date if date else datetime.date.today()
         self.content = content
-        self.catagory = catagory if catagory else 'general'
+        self.category = category if category else 'general'
         self.date_due = date_due
 
     def __eq__(self, other):
@@ -44,7 +44,7 @@ class Reminder():
            If a compared field in either Reminder is None, that field
            is ignored. The date the reminders were added is ignored.
         """
-        for attrib in ('content', 'catagory', 'date_due'):
+        for attrib in ('content', 'category', 'date_due'):
             self_attr = getattr(self, attrib)
             other_attr = getattr(other, attrib)
 
@@ -56,7 +56,7 @@ class Reminder():
         return True
 
     def __str__(self):
-        string = "{catagory}: #{serial} - {content}"
+        string = "{category}: #{serial} - {content}"
         if self.date_due:
             string += " (Due: {date_due})"
 
@@ -126,20 +126,20 @@ def _iter_reminders():
 def _append_reminder(reminder):
     """Necessary to prevent writeback being required on the shelve"""
     with _load_reminders() as reminders:
-        temp = reminders.get(reminder.catagory, [])
+        temp = reminders.get(reminder.category, [])
         temp.append(reminder)
-        reminders[reminder.catagory] = temp
+        reminders[reminder.category] = temp
 
 
 def _remove_reminder(reminder):
     """Necessary to prevent writeback being required on the shelve"""
     with _load_reminders() as reminders:
-        temp = reminders.get(reminder.catagory, [])
+        temp = reminders.get(reminder.category, [])
         temp.remove(reminder)
         if not temp:
-            del reminders[reminder.catagory]
+            del reminders[reminder.category]
         else:
-            reminders[reminder.catagory] = temp
+            reminders[reminder.category] = temp
 
 
 def _parse_absolute_date(date, sep):
@@ -186,11 +186,11 @@ def _print_results(results):
 
     catagories = {}
     for result in results:
-        catagories.setdefault(result.catagory, []).append(result)
+        catagories.setdefault(result.category, []).append(result)
 
-    for catagory in catagories:
-        print("{}:".format(catagory))
-        for reminder in catagories[catagory]:
+    for category in catagories:
+        print("{}:".format(category))
+        for reminder in catagories[category]:
             string = "\t#{serial} - {content}"
 
             if reminder.date_due:
@@ -298,8 +298,8 @@ def add(args):
 
     if args.date_due:
         arguments['date_due'] = parse_date(args.date_due)
-    if args.catagory:
-        arguments['catagory'] = args.catagory
+    if args.category:
+        arguments['category'] = args.category
 
     reminder = Reminder(**arguments)
     add_reminder(reminder)
@@ -346,8 +346,8 @@ def show(args):
             return _print_results(search_field(args.serial, 'serial')[0])
         except ValueError:
             raise InvalidSerialException("{} is not a valid serial number")
-    elif args.catagory:
-        return _print_results(search_field(args.catagory, 'catagory'))
+    elif args.category:
+        return _print_results(search_field(args.category, 'category'))
     else:
         return _print_results(list(_iter_reminders()))
 
@@ -386,12 +386,11 @@ if __name__ == '__main__':
     subparsers = parser.add_subparsers(help="Commands for todo:")
 
     # Add reminders
-    parser_add = subparsers.add_parser('add', help="add reminders",
-            aliases=('a',))
+    parser_add = subparsers.add_parser('add', help="add reminders")
     parser_add.add_argument('content', help="""text for your reminder. If
             omitted, your $EDITOR will be launched to produce the reminder
             content""", nargs='?', default=None)
-    parser_add.add_argument('--catagory', '-c', help="""catagory of your
+    parser_add.add_argument('--category', '-c', help="""category of your
             reminder (default: 'general')""")
     parser_add.add_argument('--due', '-d', help="""due date for your reminder
             (default: None)""", dest='date_due')
@@ -399,7 +398,7 @@ if __name__ == '__main__':
 
     # Remove reminders
     parser_remove = subparsers.add_parser('remove', help="""remove reminders
-            by number""", aliases=('rm',))
+            by number""")
     parser_remove.add_argument('serial', help="""number of the reminder to be
             removed""", metavar='NUMBER', type=int)
     parser_remove.add_argument('--yes', '-y', action='store_const',
@@ -408,8 +407,7 @@ if __name__ == '__main__':
     parser_remove.set_defaults(func=remove)
 
     # Search reminders
-    parser_search = subparsers.add_parser('search', help="search reminders",
-            aliases=('sh',))
+    parser_search = subparsers.add_parser('search', help="search reminders")
     parser_search.add_argument('content', help="find reminders by content",
             nargs='?', default=None)
     parser_search.add_argument('--due', '-d', help="find reminders by due date",
@@ -417,18 +415,16 @@ if __name__ == '__main__':
     parser_search.set_defaults(func=search)
 
     # Show reminders
-    parser_show = subparsers.add_parser('show', help="show reminders",
-            aliases=('sw',))
+    parser_show = subparsers.add_parser('show', help="show reminders")
     group = parser_show.add_mutually_exclusive_group()
     group.add_argument('--number', '-n', help="show a reminder by its number",
             dest='serial', default=None, metavar='NUMBER', type=int)
-    group.add_argument('--catagory', '-c', help="""show reminders in a
-            catagory""", default=None)
+    group.add_argument('--category', '-c', help="""show reminders in a
+            category""", default=None)
     parser_show.set_defaults(func=show)
 
     # Edit reminder
-    parser_edit = subparsers.add_parser('edit', help="edit a reminder",
-            aliases=('e',))
+    parser_edit = subparsers.add_parser('edit', help="edit a reminder")
     parser_edit.add_argument('serial', help="""number of the reminder to be
             edited""", metavar='NUMBER', type=int)
     parser_edit.set_defaults(func=edit)

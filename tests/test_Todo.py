@@ -36,7 +36,7 @@ class TestTodo():
                                     scope='class')
 
     def setup_reminder(self):
-        return todo.Reminder('content', 'catagory', 'due_date', 'date')
+        return todo.Reminder('content', 'category', 'due_date', 'date')
 
     def pytest_funcarg__reminder(self, request):
         return request.cached_setup(self.setup_reminder, scope='class')
@@ -50,7 +50,7 @@ class TestTodo():
         todo._append_reminder(reminder)
 
         with closing(shelve.open(db)) as reminders:
-            assert reminders['catagory'] == [reminder]
+            assert reminders['category'] == [reminder]
 
     def test_retrieve_serial(self, db, reminder):
         assert todo.search_field(4, 'serial')[0] == reminder
@@ -60,7 +60,7 @@ class TestTodo():
 
         with pytest.raises(KeyError):
             with closing(shelve.open(db)) as reminders:
-                assert reminders['catagory'] == None
+                assert reminders['category'] == None
 
     def test_iter_reminders(self, db):
         assert list(todo._iter_reminders()) == TestTodo.sample
@@ -153,23 +153,23 @@ class TestTodo():
 
     def test_add_content(self):
         reminder = self.add_helper({'content': "This is my reminder content",
-            'catagory': None, 'date_due': None, 'date': None})
+            'category': None, 'date_due': None, 'date': None})
         assert todo.reminder_exists(reminder)
 
-    def test_add_content_and_catagory(self):
+    def test_add_content_and_category(self):
         reminder = self.add_helper({'content': "This is new reminder content",
-            'catagory': 'general', 'date_due': None, 'date': None})
+            'category': 'general', 'date_due': None, 'date': None})
         assert todo.reminder_exists(reminder)
 
     def test_add_content_and_due(self):
         reminder = self.add_helper({'content': "New reminder content",
-            'catagory': None, 'date_due': 'today', 'date': None})
+            'category': None, 'date_due': 'today', 'date': None})
         reminder.date_due = todo.parse_date('today')
         assert todo.reminder_exists(reminder)
 
-    def test_add_content_catagory_and_due(self):
+    def test_add_content_category_and_due(self):
         reminder = self.add_helper({'content': "New reminder content",
-            'catagory': 'cats are evil', 'date_due': '2 weeks', 'date': None})
+            'category': 'cats are evil', 'date_due': '2 weeks', 'date': None})
         reminder.date_due = todo.parse_date('2 weeks')
         assert todo.reminder_exists(reminder)
 
