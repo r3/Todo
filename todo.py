@@ -98,7 +98,7 @@ def _confirm():
     """Handles user input for confirming various questions
        Allows Trivial Todo to work with both Python 2 & 3
     """
-    prompt = "(y/N)"
+    prompt = "(y/N) "
     if sys.version_info.major == 3:
         inpt = input(prompt)
     else:
@@ -339,7 +339,7 @@ def search(args):
     return _print_results(reminders)
 
 
-def show(args):
+def lst(args):
     """Called by the 'show' subparser"""
     if args.serial:
         try:
@@ -414,14 +414,14 @@ if __name__ == '__main__':
             dest='date_due', default=None)
     parser_search.set_defaults(func=search)
 
-    # Show reminders
-    parser_show = subparsers.add_parser('show', help="show reminders")
-    group = parser_show.add_mutually_exclusive_group()
-    group.add_argument('--number', '-n', help="show a reminder by its number",
+    # List reminders
+    parser_list = subparsers.add_parser('list', help="list reminders")
+    group = parser_list.add_mutually_exclusive_group()
+    group.add_argument('--number', '-n', help="list a reminder by its number",
             dest='serial', default=None, metavar='NUMBER', type=int)
-    group.add_argument('--category', '-c', help="""show reminders in a
+    group.add_argument('--category', '-c', help="""list reminders in a
             category""", default=None)
-    parser_show.set_defaults(func=show)
+    parser_list.set_defaults(func=lst)
 
     # Edit reminder
     parser_edit = subparsers.add_parser('edit', help="edit a reminder")
