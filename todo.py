@@ -7,7 +7,7 @@
     Requires: Python 2 or 3
 
     Trivial Todo is a command line driven program used to track reminders. It
-    is capable of handling due dates, catagories for your reminders, and more.
+    is capable of handling due dates, categories for your reminders, and more.
     Use `todo --help` for a complete list of options.
 
     A note on compatibility between 2 and 3: databases created in Python 3 are
@@ -118,8 +118,8 @@ def _load_reminders(stream=None):
 def _iter_reminders():
     """Privides an iterator for all of the reminders"""
     with _load_reminders() as reminders:
-        catagories = (reminders[x] for x in reminders.keys() if x != 'serial')
-        for reminder in chain(*catagories):
+        categories = (reminders[x] for x in reminders.keys() if x != 'serial')
+        for reminder in chain(*categories):
             yield reminder
 
 
@@ -179,18 +179,18 @@ def _print_results(results):
     """Helper function used to display results"""
     if isinstance(results, Reminder):
         print(results)
-        return
+        return None
     elif len(results) == 1:
         print(results[0])
-        return
+        return None
 
-    catagories = {}
+    categories = {}
     for result in results:
-        catagories.setdefault(result.category, []).append(result)
+        categories.setdefault(result.category, []).append(result)
 
-    for category in catagories:
+    for category, lst in categories.items():
         print("{}:".format(category))
-        for reminder in catagories[category]:
+        for reminder in lst:
             string = "\t#{serial} - {content}"
 
             if reminder.date_due:
