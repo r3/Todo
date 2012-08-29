@@ -41,8 +41,8 @@ class Reminder():
 
     def __eq__(self, other):
         """Attempts an equivalency match between two Reminders
-           If a compared field in either Reminder is None, that field
-           is ignored. The date the reminders were added is ignored.
+        If a compared field in either Reminder is None, that field
+        is ignored. The date the reminders were added is ignored.
         """
         for attrib in ('content', 'category', 'date_due'):
             self_attr = getattr(self, attrib)
@@ -96,7 +96,7 @@ class DatabaseDoesNotExistException(Exception):
 # Implementation details
 def _confirm():
     """Handles user input for confirming various questions
-       Allows Trivial Todo to work with both Python 2 & 3
+    Allows Trivial Todo to work with both Python 2 & 3
     """
     prompt = "(y/N) "
     if sys.version_info.major == 3:
@@ -210,7 +210,7 @@ def _create_new_database(path):
 # Workhorse functions called by argument functions
 def search_field(target, field):
     """Returns all matching reminders based on a given field and target data
-       Returns a list of matches
+    Returns a list of matches
     """
     matches = []
 
@@ -224,14 +224,22 @@ def search_field(target, field):
     return matches
 
 
-def search_in_content(content):
+def search_in_content(content, case_insensitive=False):
     """Searches for reminders by partial content
-       Returns a list of all matches
+    Returns a list of all matches. Optional parameter for case insensitivity.
+    Case sensitive by default.
     """
     matches = []
 
     for reminder in _iter_reminders():
-        if content in reminder.content:
+        if case_insensitive:
+            target = content.lower()
+            search = reminder.content.lower()
+        else:
+            target = content
+            search = reminder.content
+
+        if target in search:
             matches.append(reminder)
 
     return matches
@@ -257,8 +265,8 @@ def add_reminder(reminder):
 def delete_reminder(reminder):
     """Removes a reminder if one exists"""
     if not reminder_exists(reminder):
-        raise ReminderDoesNotExistException("The reminder that you're"
-               " attempting to remove does not exist.")
+        raise ReminderDoesNotExistException(
+            "The reminder that you're attempting to remove does not exist.")
 
     _remove_reminder(reminder)
 
@@ -320,7 +328,7 @@ def remove(args):
 def search(args):
     """Called by the 'search' subparser"""
     if args.content:
-        reminders = search_in_content(args.content)
+        reminders = search_in_content(args.content, args.insensitive)
     else:
         reminders = []
 
@@ -401,24 +409,29 @@ if __name__ == '__main__':
             by number""")
     parser_remove.add_argument('serial', help="""number of the reminder to be
             removed""", metavar='NUMBER', type=int)
-    parser_remove.add_argument('--yes', '-y', action='store_const',
-            const=True, help="""bypasses request for approval before removing
-            the reminder""", dest='confirm', default=None)
+    parser_remove.add_argument(
+        '--yes', '-y', action='store_const',
+        const=True, help="""bypasses request for approval before removing
+        the reminder""", dest='confirm', default=None)
     parser_remove.set_defaults(func=remove)
 
     # Search reminders
     parser_search = subparsers.add_parser('search', help="search reminders")
     parser_search.add_argument('content', help="find reminders by content",
-            nargs='?', default=None)
-    parser_search.add_argument('--due', '-d', help="find reminders by due date",
-            dest='date_due', default=None)
+                               nargs='?', default=None)
+    parser_search.add_argument(
+        '--due', '-d', help="find reminders by due date",
+        dest='date_due', default=None)
+    parser_search.add_argument(
+        '--ignore-case', '-i', help="case insensitive search",
+        dest='insensitive', default=False)
     parser_search.set_defaults(func=search)
 
     # List reminders
     parser_list = subparsers.add_parser('list', help="list reminders")
     group = parser_list.add_mutually_exclusive_group()
     group.add_argument('--number', '-n', help="list a reminder by its number",
-            dest='serial', default=None, metavar='NUMBER', type=int)
+                       dest='serial', default=None, metavar='NUMBER', type=int)
     group.add_argument('--category', '-c', help="""list reminders in a
             category""", default=None)
     parser_list.set_defaults(func=lst)

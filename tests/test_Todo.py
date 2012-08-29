@@ -60,7 +60,7 @@ class TestTodo():
 
         with pytest.raises(KeyError):
             with closing(shelve.open(db)) as reminders:
-                assert reminders['category'] == None
+                assert reminders['category'] is None
 
     def test_iter_reminders(self, db):
         assert list(todo._iter_reminders()) == TestTodo.sample
@@ -70,17 +70,21 @@ class TestTodo():
 
     # Test backend methods
     def test_search_field(self):
-        assert todo.search_field('test reminder 1', 'content')[0] == TestTodo.sample[0]
+        assert todo.search_field(
+            'test reminder 1', 'content')[0] == TestTodo.sample[0]
 
     def test_search_in_content(self):
         assert todo.search_in_content('reminder') == TestTodo.sample
+
+    def test_search_in_content_case_insensitive(self):
+        assert todo.search_in_content('ReMiNdEr', True) == TestTodo.sample
 
     def test_reminder_exists_True(self, reminder):
         assert todo.reminder_exists(TestTodo.sample[0])
 
     def test_reminder_exists_False(self):
         reminder = todo.Reminder('New Reminder')
-        assert todo.reminder_exists(reminder) == False
+        assert todo.reminder_exists(reminder) is False
 
     def test_add_existing_reminder(self):
         with pytest.raises(todo.ReminderExistsException):
@@ -99,7 +103,7 @@ class TestTodo():
     def test_delete_real_reminder(self, reminder):
         todo.add_reminder(reminder)
         todo.delete_reminder(reminder)
-        assert todo.reminder_exists(reminder) == False
+        assert todo.reminder_exists(reminder) is False
 
     # Test time translation
     def test_time_parse_tomorrow(self):
@@ -153,23 +157,31 @@ class TestTodo():
 
     def test_add_content(self):
         reminder = self.add_helper({'content': "This is my reminder content",
-            'category': None, 'date_due': None, 'date': None})
+                                    'category': None,
+                                    'date_due': None,
+                                    'date': None})
         assert todo.reminder_exists(reminder)
 
     def test_add_content_and_category(self):
         reminder = self.add_helper({'content': "This is new reminder content",
-            'category': 'general', 'date_due': None, 'date': None})
+                                    'category': 'general',
+                                    'date_due': None,
+                                    'date': None})
         assert todo.reminder_exists(reminder)
 
     def test_add_content_and_due(self):
         reminder = self.add_helper({'content': "New reminder content",
-            'category': None, 'date_due': 'today', 'date': None})
+                                    'category': None,
+                                    'date_due': 'today',
+                                    'date': None})
         reminder.date_due = todo.parse_date('today')
         assert todo.reminder_exists(reminder)
 
     def test_add_content_category_and_due(self):
         reminder = self.add_helper({'content': "New reminder content",
-            'category': 'cats are evil', 'date_due': '2 weeks', 'date': None})
+                                    'category': 'cats are evil',
+                                    'date_due': '2 weeks',
+                                    'date': None})
         reminder.date_due = todo.parse_date('2 weeks')
         assert todo.reminder_exists(reminder)
 
@@ -179,7 +191,7 @@ class TestTodo():
         Namespace = namedtuple('Namespace', ('serial', 'confirm'))
         args = Namespace(reminder.serial, True)
         todo.remove(args)
-        assert todo.reminder_exists(reminder) == False
+        assert todo.reminder_exists(reminder) is False
 
     def test_remove_fail(self, reminder):
         Namespace = namedtuple('Namespace', ('serial', 'confirm'))
@@ -190,12 +202,14 @@ class TestTodo():
     # Search subparser
     def test_search_one_match(self):
         setattr(todo, '_print_results', lambda x: x)
-        Namespace = namedtuple('Namespace', ('content', 'date_due'))
-        args = Namespace('reminder 1', None)
+        Namespace = namedtuple('Namespace', ('content', 'date_due',
+                                             'insensitive'))
+        args = Namespace('reminder 1', None, False)
         assert todo.search(args)[0] == TestTodo.sample[0]
 
     def test_search_multi_match(self):
         setattr(todo, '_print_results', lambda x: x)
-        Namespace = namedtuple('Namespace', ('content', 'date_due'))
-        args = Namespace('test', None)
+        Namespace = namedtuple('Namespace', ('content', 'date_due',
+                                             'insensitive'))
+        args = Namespace('test', None, False)
         assert todo.search(args) == TestTodo.sample
