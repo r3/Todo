@@ -26,7 +26,9 @@ import os
 from itertools import chain
 from contextlib import closing
 
-DB = os.path.join(os.getenv('HOME'), '.todo.shelve')
+HOME = os.path.join(os.getenv('HOME'), '.todo')
+DB_NAME = 'database.shelve'
+DB_LOCATION = os.path.join(HOME, DB_NAME)
 
 
 # Each added reminder is an instance of the following class
@@ -111,7 +113,7 @@ def _load_reminders(stream=None):
     """Shortcut for loading the shelve with a context manager"""
     # Necessary to reload stream for testing purposes
     if stream is None:
-        stream = DB
+        stream = DB_LOCATION
     return closing(shelve.open(stream))
 
 
@@ -475,9 +477,9 @@ if __name__ == '__main__':
     if args.db:
         if not os.path.exists(args.db):
             _create_new_database(args.db)
-        DB = args.db
+        DB_LOCATION = args.db
     else:
-        if not os.path.exists(DB):
-            _create_new_database(DB)
+        if not os.path.exists(DB_LOCATION):
+            _create_new_database(DB_LOCATION)
 
     args.func(args)
