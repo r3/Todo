@@ -231,12 +231,15 @@ def search_in_content(content, case_insensitive=False):
     """
     matches = []
 
+    if case_insensitive:
+        target = content.lower()
+    else:
+        target = content
+
     for reminder in _iter_reminders():
         if case_insensitive:
-            target = content.lower()
             search = reminder.content.lower()
         else:
-            target = content
             search = reminder.content
 
         if target in search:
@@ -424,7 +427,7 @@ if __name__ == '__main__':
         dest='date_due', default=None)
     parser_search.add_argument(
         '--ignore-case', '-i', help="case insensitive search",
-        dest='insensitive', default=False)
+        dest='insensitive', const=True, default=False, action='store_const')
     parser_search.set_defaults(func=search)
 
     # List reminders
