@@ -144,17 +144,30 @@ def _remove_reminder(reminder):
 
 def _parse_absolute_date(date, sep):
     """Helper function that handles parsing relative times like '03/08'"""
-    try:
-        if date.count(sep) == 1:
-            month, day = date.split(sep)
-            year = datetime.date.today().year
-        elif date.count(sep) == 2:
-            month, day, year = date.split(sep)
-        else:
+    def convert(day, month, year):
+        try:
+            return datetime.date(year, month, day)
+        except ValueError:
+            day, month = month, day
+
+        try:
+            return datetime.date(year, month, day)
+        except ValueError:
             raise InvalidDateException("Cannot parse time: {}".format(date))
 
-        return datetime.date(int(year), int(month), int(day))
-    except ValueError:
+    if date.count(sep) == 1:
+        month, day = date.split(sep)
+        year = datetime.date.today().year
+        return convert(int(day), int(month), year)
+
+    elif date.count(sep) == 2:
+        date_list = [int(x) for x in date.split(sep)]
+        year = max(date_list)
+        date_list.remove(year)
+        month, day = date_list
+        return convert(day, month, year)
+
+    else:
         raise InvalidDateException("Cannot parse time: {}".format(date))
 
 
@@ -336,16 +349,20 @@ def search(args):
         reminders = []
 
     if args.date_due and reminders:
+        date = parse_date(args.date_due)
         matches = []
 
         for reminder in reminders:
-            if reminder.date_due == args.date_due:
+            if not reminder.date_due:
+                continue
+            elif args.after and reminder.date_due >= date:
+                matches.append(reminder)
+            elif args.before and reminder.date_due <= date:
+                matches.append(reminder)
+            elif reminder.date_due == date:
                 matches.append(reminder)
 
         return _print_results(matches)
-
-    elif args.date_due:
-        return _print_results(search_field(args.date_due, 'date_due'))
 
     return _print_results(reminders)
 
@@ -425,6 +442,14 @@ if __name__ == '__main__':
     parser_search.add_argument(
         '--due', '-d', help="find reminders by due date",
         dest='date_due', default=None)
+    parser_search.add_argument(
+        '--before', '-b', help=("search for due dates prior to given date. "
+                                "(if no date is given, this will be ignored)"),
+        default=False, action='store_const', const=True)
+    parser_search.add_argument(
+        '--after', '-a', help=("search for due dates following given date. "
+                               "(if no date is given, this will be ignored)"),
+        default=False, action='store_const', const=True)
     parser_search.add_argument(
         '--ignore-case', '-i', help="case insensitive search",
         dest='insensitive', const=True, default=False, action='store_const')
