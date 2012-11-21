@@ -482,4 +482,7 @@ if __name__ == '__main__':
         if not os.path.exists(DB_LOCATION):
             _create_new_database(DB_LOCATION)
 
-    args.func(args)
+    if hasattr(args, 'func'):
+        args.func(args)
+    else:
+        parser.print_help()
